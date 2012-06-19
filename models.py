@@ -183,7 +183,7 @@ class RboxFile(models.Model):
     filename = models.CharField('File Name', max_length=100)
     filelabel = models.CharField('File Type', max_length=50, blank=True, null=True)
     filesize = models.PositiveIntegerField('File Size')
-    filepointer = RboxFileField('File Pointer', max_length=200, upload_to='filemanager.rboxfile', backup_storage=S3BotoStorage())
+    filepointer = RboxFileField('File Pointer', max_length=200, upload_to='filemanager.rboxfile', backup_storage=S3BotoStorage(zip_n_save=True))
     user = models.ForeignKey(User,null=True)
     date = models.DateTimeField(default=datetime.datetime.now)
 
