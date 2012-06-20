@@ -36,6 +36,13 @@ class FileManager(models.Manager):
     class FileDoesNotExist(Exception):
         pass
 
+    class FileNameDidNoTMatch(Exception):
+        pass
+
+    class MaximumNumberofObjectsAlreadyCreated(Exception):
+        pass
+        
+
 
     def get_query_set(self):
         """Returns a new QuerySet object.  Subclasses can override this method
@@ -53,8 +60,12 @@ class FileManager(models.Manager):
 
     def create(self, **kwargs):
         if self.max_count and (self.all().count() >= self.max_count):
-            raise ValueError("Maximum number of objects already created")
+            raise FileManager.MaximumNumberofObjectsAlreadyCreated("Maximum number of objects already created")
         filepointer = kwargs['filepointer']
+        if kwargs.get('filename', None):
+            if kwargs['filename'] != filepointer.name:
+                raise FileManager.FileNameDidNoTMatch("the keyword argument filename didnot match with filepointer.name")
+            
         if not 'filename' in kwargs:
             kwargs['filename'] = filepointer.name
         if not 'filesize' in kwargs:
@@ -67,7 +78,7 @@ class FileManager(models.Manager):
         
     def add(self, rbox_file):
         if self.max_count and (self.all().count() >= self.max_count):
-            raise ValueError("Maximum number of objects already created")
+            raise FileManager.MaximumNumberofObjectsAlreadyCreated("Maximum number of objects already created")
 
         rboxfile_connector, created = RboxFileConnector.objects.get_or_create(rbox_file=rbox_file, content_type=self.content_type,
                                                object_id=self.instance.id, file_field_identifier=self.file_field_identifier)
