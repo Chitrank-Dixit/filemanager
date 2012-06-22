@@ -31,7 +31,7 @@ class FileManager(ExtendedGenericManager):
         """
         return QuerySet(RboxFile).filter(rboxfileconnector__content_type=self.content_type,
                                          rboxfileconnector__object_id=self.instance.id,
-                                         rboxfileconnector__file_field_identifier=self.file_field_identifier)
+                                         rboxfileconnector__file_field_identifier=self.field_identifier)
 
     def all(self):                
         if hasattr(self, 'ondelete'):            
@@ -52,7 +52,7 @@ class FileManager(ExtendedGenericManager):
             kwargs['filesize'] = filepointer.size
         rbox_file = self.get_query_set().create(**kwargs)
         rboxfile_connector = RboxFileConnector(rbox_file=rbox_file, content_type=self.content_type,
-                                               object_id=self.instance.id, file_field_identifier=self.file_field_identifier)
+                                               object_id=self.instance.id, file_field_identifier=self.field_identifier)
         rboxfile_connector.save()
         return rbox_file
         
@@ -61,7 +61,7 @@ class FileManager(ExtendedGenericManager):
             raise FileManager.MaximumNumberofObjectsAlreadyCreated("Maximum number of objects already created")
 
         rboxfile_connector, created = RboxFileConnector.objects.get_or_create(rbox_file=rbox_file, content_type=self.content_type,
-                                               object_id=self.instance.id, file_field_identifier=self.file_field_identifier)
+                                               object_id=self.instance.id, file_field_identifier=self.field_identifier)
         return rbox_file
 
     def remove(self, rbox_file):
@@ -70,7 +70,7 @@ class FileManager(ExtendedGenericManager):
         """
         try:
             rboxfile_connector = RboxFileConnector.objects.get(rbox_file=rbox_file, content_type=self.content_type,
-                                                           object_id=self.instance.id, file_field_identifier=self.file_field_identifier)
+                                                           object_id=self.instance.id, file_field_identifier=self.field_identifier)
             rboxfile_connector.delete()
         except RboxFileConnector.DoesNotExist:
             pass
@@ -135,13 +135,13 @@ class RboxFileConnector(models.Model):
    
 
 class GenericFilePlug(ExtendedGenericPlug):
-    def __init__(self,related_name=None, file_field_identifier=None, max_count=None, *args, **kwargs):
+    def __init__(self,related_name=None, field_identifier=None, max_count=None, *args, **kwargs):
         if not related_name:
             related_name = uuid.uuid4().hex
         kwargs['related_name'] = related_name
         kwargs['to'] = RboxFileConnector
         super(GenericFilePlug,self).__init__(**kwargs)
-        self.file_field_identifier = file_field_identifier
+        self.field_identifier = field_identifier
         self.max_count = max_count
 
     def value_from_object(self, obj):
@@ -165,11 +165,9 @@ class RboxFilePlug(GenericFilePlug, CustomFileRelation):
 class RboxSingleFilePlug(GenericSingleFilePlug, RboxFilePlug):
     pass
     
-class Message(models.Model):
-    docs = RboxFilePlug()
 
-rboxfileplug_introspection_rules = [((RboxFilePlug,),[],{"file_field_identifier": ["file_field_identifier",{}],},)]
+rboxfileplug_introspection_rules = [((RboxFilePlug,),[],{"field_identifier": ["field_identifier",{}],},)]
 add_introspection_rules(rboxfileplug_introspection_rules, ["filemanager.models.RboxFilePlug"])
 
-rboxsinglfileplug_introspection_rules = [((RboxSingleFilePlug,),[],{"file_field_identifier": ["file_field_identifier",{}],},)]
+rboxsinglfileplug_introspection_rules = [((RboxSingleFilePlug,),[],{"field_identifier": ["field_identifier",{}],},)]
 add_introspection_rules(rboxsinglfileplug_introspection_rules, ["filemanager.models.RboxSingleFilePlug"])
