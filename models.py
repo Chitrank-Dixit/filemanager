@@ -1,5 +1,5 @@
-from django.db import models, connection
-from django.db.models.query import QuerySet, EmptyQuerySet, insert_query, RawQuerySet
+from django.db import models
+from django.db.models.query import QuerySet
 from custom_filefield import RboxFileField
 from custom_filefield import S3BotoStorage
 from django.contrib.auth.models import User
@@ -7,31 +7,13 @@ import uuid
 import datetime
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
-from django.db.models.fields.related import RelatedField, Field, ManyToManyRel
-from django.conf import settings
+from extendedgenericrelation import ExtendedGenericPlug, ExtendedGenericManager,\
+                                    ExtendedGenericManagerDescriptor, ExtendedGenericRelation
 
 from south.modelsinspector import add_introspection_rules
 
-class FileManager(models.Manager):
-    def __init__(self, model=None, core_filters=None, instance=None, symmetrical=None,
-                 join_table=None, source_col_name=None, target_col_name=None, content_type=None,
-                 content_type_field_name=None, object_id_field_name=None, file_field_identifier=None, max_count=None):
 
-        super(FileManager, self).__init__()
-        self.core_filters = core_filters or {}
-        self.model = model
-        self.content_type = content_type
-        self.symmetrical = symmetrical
-        self.instance = instance
-        self.join_table = join_table
-        self.join_table = model._meta.db_table
-        self.source_col_name = source_col_name
-        self.target_col_name = target_col_name
-        self.content_type_field_name = content_type_field_name
-        self.object_id_field_name = object_id_field_name
-        self.pk_val = self.instance._get_pk_val()
-        self.file_field_identifier = file_field_identifier
-        self.max_count = max_count
+class FileManager(ExtendedGenericManager):
     
     class FileDoesNotExist(Exception):
         pass
@@ -40,8 +22,7 @@ class FileManager(models.Manager):
         pass
 
     class MaximumNumberofObjectsAlreadyCreated(Exception):
-        pass
-        
+        pass        
 
 
     def get_query_set(self):
@@ -64,8 +45,7 @@ class FileManager(models.Manager):
         filepointer = kwargs['filepointer']
         if kwargs.get('filename', None):
             if kwargs['filename'] != filepointer.name:
-                raise FileManager.FileNameDidNoTMatch("the keyword argument filename didnot match with filepointer.name")
-            
+                raise FileManager.FileNameDidNoTMatch("the keyword argument filename didnot match with filepointer.name")            
         if not 'filename' in kwargs:
             kwargs['filename'] = filepointer.name
         if not 'filesize' in kwargs:
@@ -115,7 +95,7 @@ class FileManager(models.Manager):
             raise AttributeError("'FileManager' object has no attribute 'delete'")
 
 
-class FileManagerDescriptor(object):
+class FileManagerDescriptor(ExtendedGenericManagerDescriptor):
     """
     This class provides the functionality that makes the related-object
     managers available as attributes on a model class, for fields that have
@@ -124,71 +104,19 @@ class FileManagerDescriptor(object):
     "article.publications", the publications attribute is a
     ReverseGenericRelatedObjectsDescriptor instance.
     """
-    def __init__(self, field, file_field_identifier, max_count):
-        self.field = field
-        self.file_field_identifier = file_field_identifier
-        self.max_count = max_count
 
     def get_filemanager(self):
         return FileManager
 
-    def __get__(self, instance, instance_type=None):
-        if instance is None:
-            return self
 
-        # This import is done here to avoid circular import importing this module
-        from django.contrib.contenttypes.models import ContentType
-
-        # Dynamically create a class that subclasses the related model's
-        # default manager.
-        rel_model = self.field.rel.to
-        RelatedManager = self.get_filemanager()
-
-        qn = connection.ops.quote_name
-
-        manager = RelatedManager(
-            model = rel_model,
-            instance = instance,
-            symmetrical = (self.field.rel.symmetrical and instance.__class__ == rel_model),
-            join_table = qn(self.field.m2m_db_table()),
-            source_col_name = qn(self.field.m2m_column_name()),
-            target_col_name = qn(self.field.m2m_reverse_name()),
-            content_type = ContentType.objects.db_manager(instance._state.db).get_for_model(instance),
-            content_type_field_name = self.field.content_type_field_name,
-            object_id_field_name = self.field.object_id_field_name,
-            file_field_identifier = self.file_field_identifier,
-            max_count = self.max_count
-        )
-
-        return manager
-
-    def __set__(self, instance, value):
-        if instance is None:
-            raise AttributeError("Manager must be accessed via instance")
-
-        manager = self.__get__(instance)
-        manager.clear()
-        for obj in value:
-            manager.add(obj)
-
-class CustomFileRelation(generic.GenericRelation):    
+class CustomFileRelation(ExtendedGenericRelation):    
     def get_filemanager_descriptor(self):
         return FileManagerDescriptor
 
-    def contribute_to_class(self, cls, name):
-        super(CustomFileRelation, self).contribute_to_class(cls, name)
-
-        # Save a reference to which model this class is on for future use
-        self.model = cls
-        if not self.file_field_identifier:
-            self.file_field_identifier = self.name
-        
-        RelatedManagerDescriptor = self.get_filemanager_descriptor()
-        setattr(cls, self.name, RelatedManagerDescriptor(self, self.file_field_identifier, self.max_count))
 
 def get_unique_key():
     return uuid.uuid4().hex
-        
+    
 class RboxFile(models.Model):
     unique_key = models.CharField('Unique Key', max_length=100, default=get_unique_key, unique=True, db_index=True)
     filename = models.CharField('File Name', max_length=100)
@@ -206,7 +134,7 @@ class RboxFileConnector(models.Model):
     content_object = generic.GenericForeignKey('content_type', 'object_id')
    
 
-class GenericFilePlug(object):
+class GenericFilePlug(ExtendedGenericPlug):
     def __init__(self,related_name=None, file_field_identifier=None, max_count=None, *args, **kwargs):
         if not related_name:
             related_name = uuid.uuid4().hex
@@ -236,10 +164,12 @@ class RboxFilePlug(GenericFilePlug, CustomFileRelation):
 
 class RboxSingleFilePlug(GenericSingleFilePlug, RboxFilePlug):
     pass
+    
+class Message(models.Model):
+    docs = RboxFilePlug()
 
 rboxfileplug_introspection_rules = [((RboxFilePlug,),[],{"file_field_identifier": ["file_field_identifier",{}],},)]
 add_introspection_rules(rboxfileplug_introspection_rules, ["filemanager.models.RboxFilePlug"])
 
 rboxsinglfileplug_introspection_rules = [((RboxSingleFilePlug,),[],{"file_field_identifier": ["file_field_identifier",{}],},)]
 add_introspection_rules(rboxsinglfileplug_introspection_rules, ["filemanager.models.RboxSingleFilePlug"])
-
