@@ -25,8 +25,7 @@ class RboxFilePlugTest(unittest.TestCase):
         self.message_class = Message
         self.message = Message.objects.create()
         self.message_2 = Message.objects.create()
-        self.filename =  os.path.dirname(__file__) + "/" + "text.txt"
-                  
+        self.filename = os.path.join(os.path.dirname(__file__),'text.txt')                  
 
 
     def get_file_obj(self, filename):
