@@ -7,7 +7,7 @@ import uuid
 import datetime
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
-from extendedgenericrelation import ExtendedGenericPlug, ExtendedGenericManager,\
+from plug_manager_template import ExtendedGenericPlug, ExtendedGenericManager,\
                                     ExtendedGenericManagerDescriptor, ExtendedGenericRelation
 
 from south.modelsinspector import add_introspection_rules

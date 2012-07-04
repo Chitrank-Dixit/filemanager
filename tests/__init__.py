@@ -129,10 +129,7 @@ class RboxSingleFilePlugTest(unittest.TestCase):
         from django.core import management
         management.call_command('syncdb', verbosity=0, interactive=False)
         self.candidate = Candidate.objects.create()
-        self.filename = 'file_manager.txt'
-        f = open(self.filename, 'w')
-        f.write("this is the file")
-        f.close()
+        self.filename = os.path.join(os.path.dirname(__file__),'text.txt')
 
     def get_file_obj(self, filename):
         f = open(filename, 'rb')
