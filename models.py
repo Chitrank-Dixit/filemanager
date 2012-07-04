@@ -122,7 +122,7 @@ class RboxFile(models.Model):
     filename = models.CharField('File Name', max_length=100)
     filelabel = models.CharField('File Type', max_length=50, blank=True, null=True)
     filesize = models.PositiveIntegerField('File Size')
-    filepointer = RboxFileField('File Pointer', max_length=200, upload_to='filemanager.rboxfile', backup_storage=S3BotoStorage(zip_n_save=True))
+    filepointer = RboxFileField('File Pointer', max_length=200, upload_to='filemanager.rboxfile')
     user = models.ForeignKey(User,null=True)
     date = models.DateTimeField(default=datetime.datetime.now)
 
@@ -164,10 +164,13 @@ class RboxFilePlug(GenericFilePlug, CustomFileRelation):
 
 class RboxSingleFilePlug(GenericSingleFilePlug, RboxFilePlug):
     pass
+
+class Message(models.Model):
+    docs = RboxFilePlug()
     
 
 rboxfileplug_introspection_rules = [((RboxFilePlug,),[],{"field_identifier": ["field_identifier",{}],},)]
-add_introspection_rules(rboxfileplug_introspection_rules, ["filemanager.models.RboxFilePlug"])
+add_introspection_rules(rboxfileplug_introspection_rules, ["filemanager.field.models.RboxFilePlug"])
 
 rboxsinglfileplug_introspection_rules = [((RboxSingleFilePlug,),[],{"field_identifier": ["field_identifier",{}],},)]
-add_introspection_rules(rboxsinglfileplug_introspection_rules, ["filemanager.models.RboxSingleFilePlug"])
+add_introspection_rules(rboxsinglfileplug_introspection_rules, ["filemanager.field.models.RboxSingleFilePlug"])
