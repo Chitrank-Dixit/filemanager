@@ -105,12 +105,12 @@ class FileManagerDescriptor(ExtendedGenericManagerDescriptor):
     ReverseGenericRelatedObjectsDescriptor instance.
     """
 
-    def get_filemanager(self):
+    def get_relatedmanager(self):
         return FileManager
 
 
 class CustomFileRelation(ExtendedGenericRelation):    
-    def get_filemanager_descriptor(self):
+    def get_relatedmanager_descriptor(self):
         return FileManagerDescriptor
 
 
