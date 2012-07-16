@@ -48,6 +48,14 @@ class FileManager(ExtendedGenericManager):
                 raise FileManager.FileNameDidNoTMatch("the keyword argument filename didnot match with filepointer.name")            
         if not 'filename' in kwargs:
             kwargs['filename'] = filepointer.name
+
+        '''
+        Filename's can be really long. Taking the last part of the filename to preserve extension.
+        '''
+        filename = kwargs['filename']
+        if len(filename) > 100:
+            kwargs['filename'] = filename[len(filename)-100:]
+
         if not 'filesize' in kwargs:
             kwargs['filesize'] = filepointer.size
         rbox_file = self.get_query_set().create(**kwargs)
