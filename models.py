@@ -178,7 +178,7 @@ class Message(models.Model):
     
 
 rboxfileplug_introspection_rules = [((RboxFilePlug,),[],{"field_identifier": ["field_identifier",{}],},)]
-add_introspection_rules(rboxfileplug_introspection_rules, ["filemanager.field.models.RboxFilePlug"])
+add_introspection_rules(rboxfileplug_introspection_rules, ["filemanager.models.RboxFilePlug"])
 
 rboxsinglfileplug_introspection_rules = [((RboxSingleFilePlug,),[],{"field_identifier": ["field_identifier",{}],},)]
-add_introspection_rules(rboxsinglfileplug_introspection_rules, ["filemanager.field.models.RboxSingleFilePlug"])
+add_introspection_rules(rboxsinglfileplug_introspection_rules, ["filemanager.models.RboxSingleFilePlug"])
