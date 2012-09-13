@@ -1,5 +1,5 @@
-from models import RboxFilePlug
-from models import RboxSingleFilePlug
+from rboxfileplug import RboxFilePlug
+from rboxsinglefileplug import RboxSingleFilePlug
 from models import RboxFile
 
 def create_file(**kwargs):
