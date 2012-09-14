@@ -38,9 +38,9 @@ class SingleFileManagerDescriptor(ExtendedGenericManagerDescriptor):
             
         if not isinstance(value, RboxFile):
             raise TypeError("Only accepts a RboxFile object")
-        manager = self.__get__(instance, return_manager=True)
-        
-        manager.all().delete()
+            
+        manager = self.__get__(instance, return_manager=True)        
+        manager.remove(manager.all()[0])
         manager.add(value)
 
 

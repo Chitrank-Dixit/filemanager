@@ -88,10 +88,7 @@ class FileManager(ExtendedGenericManager):
                 raise FileManager.FileDoesNotExist
 
     def delete(self, **kwargs):
-        if self.max_count == 1:
-            return self.all().delete()
-        else:
-            raise AttributeError("'FileManager' object has no attribute 'delete'")
+        raise AttributeError("'FileManager' object has no attribute 'delete'")
 
 
 
